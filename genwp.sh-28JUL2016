@@ -1,7 +1,11 @@
 #!/bin/bash
 ##Change Log
-########################################################
-# 1.4
+###########################################################################################
+# Written by Zack Pelka
+# 1.5 - 1JUN2019
+# 	Added script to GIT and am reviewing for updates that might be needed
+#
+# 1.4 - 28JUL2016
 # 	Added new NA1PPGDBL1397v server as a DB server option
 #
 # 1.3
@@ -13,24 +17,24 @@
 #	Added Deletion of old 2012 and 2013 themes
 #	Updated plugin install versions and locations
 #	Made code easier to read
-########################################################
+###########################################################################################
 
 # Define variables
-# Development database server IP
-devdbserver=10.10.5.169
-# Production database server IP
+# Development MySQL Database Server IP
+devdbserver=10.10.5.169 
+# Production MySQL Database Server IP
 proddbserver=10.10.5.198
-# New Production database server IP
+# New Production MySQL Database Server IP
 newproddbserver=10.10.18.59
 
 clear
 for i in {16..20} {20..16} ; do echo -en "\e[38;5;${i}m#####\e[0m" ; done ; echo
 echo -e "   \e[22mAll in one multi-tenant hosting Vhost script"
 echo "                 by Zachary Pelka              "
-echo -e "                 \e[2mver2.0 22OCT2015              "
+echo -e "                 \e[2mver2.0 1APR2019              "
 for i in {16..20} {20..16} ; do echo -en "\e[38;5;${i}m#####\e[0m" ; done ; echo
 echo -e "\e[24m"
-echo -e "\e[4mPlease input the name of the new website to create:"
+echo -e "\e[4mPlease input the name of the new Wordpress website you wish to create:"
 
 read websiten
 
@@ -38,11 +42,10 @@ read websiten
 
 # Creates a local group for FTP rights for the site
 	groupadd $websiten
-# Add inact to group so Interactive can FTP to the site
+# Add Inact Administrative User ID's to group so Interactive Services can FTP to the site
 	usermod -a -G $websiten inact 
 	usermod -a -G $websiten itact
 	usermod -a -G $websiten pelkaz
-	usermod -a -G $websiten yreddy
 	
 # Creates the folder structure for the site in a multi-tenant server
 	mkdir /data/www/vhosts/$websiten
@@ -59,7 +62,8 @@ read websiten
 # Apache Vhost file creation script
 # Determines IP address of machine to use in the HTTP Vhost file
 	ip=`ifconfig eth0|grep inet|awk {'print $2'}|cut -d":" -f2`
-# Creates the Vhost file based on IP and website name
+	
+# Creates the Apache Vhost file based on IP and website name
 	echo "<VirtualHost $ip>" >> /etc/httpd/sites-enabled/$websiten.conf
 	echo "DocumentRoot /data/www/vhosts/$websiten/webroot/" >> /etc/httpd/sites-enabled/$websiten.conf
 	echo "ServerName $websiten" >> /etc/httpd/sites-enabled/$websiten.conf
@@ -81,7 +85,9 @@ read websiten
 	echo 'php_value post_max_size "100M"' >> /etc/httpd/sites-enabled/$websiten.conf
 	echo "" >> /etc/httpd/sites-enabled/$websiten.conf
 	echo "</VirtualHost>" >> /etc/httpd/sites-enabled/$websiten.conf
+	
 	clear
+	
 	echo "Conf File $websiten.conf has been created  "
 	echo ""
 #	echo ""
@@ -96,6 +102,7 @@ read websiten
 	# Pulls local IP address of machine 
 	ifconfig eth0|grep inet|awk {'print $2'}|cut -d":" -f2
 	echo ""
+	
 # Removed code snippet below that has been replaced by a logical HTTPD configtest
 # ZP 20OCT15
 #--------------------------------------------------------------------------------
@@ -145,7 +152,7 @@ if [[ $string == "Syntax OK" ]]
                 service httpd status
                 echo ""
 fi
-# Lets install Wordpress now
+# Lets start to install Wordpress now
 
 #echo ""
 #echo "Do you wish to install Wordpress?"
@@ -169,6 +176,7 @@ fi
 	unzip -q /data/WPPlugins/all-in-one-wp-security-and-firewall.zip -d /data/www/vhosts/$websiten/wordpress/wp-content/plugins
 	#unzip /data/WPPlugins/import-users-from-csv.1.0.0.zip -d /data/www/vhosts/$websiten/wordpress/wp-content/plugins
         #unzip /data/WPPlugins/wordfence.5.3.2.zip -d /data/www/vhosts/$websiten/wordpress/wp-content/plugins
+
 # Clean up install location paths
 	mv /data/www/vhosts/$websiten/wordpress/* /data/www/vhosts/$websiten/webroot
 	rm -rf /data/www/vhosts/$websiten/wordpress
@@ -180,12 +188,13 @@ fi
 #	setfacl -Rm g:apache:r-x /data/www/vhosts/$websiten
 	chmod g+s -R /data/www/vhosts/$websiten/webroot
 	chmod g+s -R /data/www/vhosts/$websiten
+	
 # Create DB
 	echo -e "\e[0m"
 	echo -e "\e[4mChoose which envrionment or MySQL server we are setting the database up on:"
 	echo -e "\e[0m1) NEW PROD - NA1DPGDBL1397V"
 	echo "2) Old Prod - NA1PPGDBL676V"
-#	echo "3) DEV - NA1DPGDBL675v"
+#	echo "3) DEV - NA1DPGDBL675v" - Server was removed from the environment - Keeping for legacy coding samples
 	echo ""
 	read dbenv
         	if [ $dbenv = 1 ] ; then
@@ -198,13 +207,14 @@ fi
                 	dbserver=$proddbserver
 	        break
 	fi
+# Commented out below as this server is no longer in use - But keeping code for ease to add new MySQL servers	
 #		if [ $dbenv = 3 ] ;then
 #			echo "Dev - NA1DPGDBL675v"
 #			dbserver=$devdbserver
 #		break
 #	fi
 
-#       Create Strong WP
+#       Create Strong PW
 # All rights reserved Copyright by Jian Yang
 # ----------------------------------------------------------------------------
 #
